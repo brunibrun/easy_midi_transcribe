@@ -1,0 +1,5 @@
+Project to transcribe audio to midi. 
+Required Packages are mido, pyaudio, numpy, time, 
+
+To run the application run audiostream.py.
+
