@@ -44,7 +44,7 @@ class StreamProcessor(object):
         
         print(np.array(notes))
         # save notes as midi
-        create_midi_file_with_notes("new_file", np.array(notes), BPM)
+        create_midi_file_with_notes("midi_output/new_file", np.array(notes), BPM)
 
 
     def _process_frame(self, data, frame_count, time_info, status_flag):

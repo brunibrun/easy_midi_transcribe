@@ -41,14 +41,6 @@ def add_notes(track, notes, sec_per_tick):
             )
         )
 
-        #track.append(
-        #    Message(
-        #        'pitchwheel',
-        #        pitch=note_int[0]*50,
-        #        time=10
-        #    )
-        #)
-
         track.append(
             Message(
                 'note_off',
@@ -66,7 +58,6 @@ def create_midi_file_with_notes(filename, notes, bpm):
         track.append(Message('program_change', program=12, time=0))
 
         tempo = bpm2tempo(bpm)
-        #tempo = int((60.0 / bpm) * 1000000) # old and not needed anymore
         track.append(MetaMessage('set_tempo', tempo=tempo))
 
         sec_per_tick = tempo / 1000000.0 / midifile.ticks_per_beat
