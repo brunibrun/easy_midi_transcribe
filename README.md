@@ -1,6 +1,6 @@
 # Easy Audio to Midi Transcription
 
-Recognition of notes of monophonic audio stream or of notes in wave files and transcription to a midi file.
+Small project for the recognition of notes of monophonic audio stream or of notes in wave files and the transcription to a midi file.
 *- The recognition part still needs big improvements*
 
 **- To transcribe monophonic audio streams execute audiostream.py.**
@@ -14,7 +14,7 @@ Required Packages are:
 
 
 This project is based upon code from Ania Wsz's [rtmonoaudio2midi] 
-This project was created in python 3.7.
+and was created in python 3.7.
 
 [rtmonoaudio2midi]: <https://github.com/aniawsz/rtmonoaudio2midi>
    

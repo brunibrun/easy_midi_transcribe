@@ -1,3 +1,14 @@
+# Set path to wave file #  
+PATH_TO_FILE = "/Path/to/your/File/Wave.wav"
+
+# BPM of midi output
+BPM = 110
+
+# work in progress - mainly for the offset detection
+AVERAGE_QUIET_NOISE = 40
+LOUDNESS_TRESHHOLD = 4
+
+
 FFT_SIZE = 1024
 WINDOW_SIZE = 2048
 THRESHOLD_WINDOW_SIZE = 20
@@ -8,13 +19,6 @@ DEFAULT_BPM = 120
 DEFAULT_PITCH = 64
 DEFAULT_VELOCITY = 64
 
-BPM = 110
-
 RING_BUFFER_SIZE = 40
 FRAMES_PER_BUFFER = 4096
 SAMPLE_RATE = 44100
-
-AVERAGE_QUIET_NOISE = 40
-LOUDNESS_TRESHHOLD = 4
-
-PATH_TO_FILE = "/Path/to/your/File/Wave.wav"
