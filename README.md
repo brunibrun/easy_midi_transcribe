@@ -1,16 +1,18 @@
-# Easy Audio to Midi Transcription
+# Easy audio to midi transcription
 
-Small project for the recognition of notes of monophonic audio stream or of notes in wave files and the transcription to a midi file.
-*- The recognition part still needs big improvements*
+Small project for note recognition in mono audio-streams or in wave files and the subsequent transcription to a midi file.
+- The note recognition still needs major improvements
 
-**- To transcribe monophonic audio streams execute audiostream.py.**
+**- To transcribe monophonic audio streams, execute audiostream.py.**
+
 **- To transcribe wave files, set the path to your wave file in app_setup.py and execute file_input.py**
 
 
-Required Packages are: 
-*-	mido == 1.2.9*
-*-	numpy == 1.18.1*
-*-	PyAudio == 0.2.11*
+
+Required packages are: 
+-	mido == 1.2.9
+-	numpy == 1.18.1
+-	PyAudio == 0.2.11
 
 
 This project is based upon code from Ania Wsz's [rtmonoaudio2midi] 
