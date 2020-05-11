@@ -3,3 +3,4 @@ __pycache__
 models/.DS_Store
 test.py
 midi_output/new_file.mid
+midi_output/new_fileoutput.mid
