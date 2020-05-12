@@ -15,7 +15,7 @@ Required packages are:
 -	PyAudio == 0.2.11
 
 
-This project is based on code from Ania Wsz's [rtmonoaudio2midi] and was created in python 3.7.
+This project is based on code from Ania Wsz's [rtmonoaudio2midi]
 
 [rtmonoaudio2midi]: <https://github.com/aniawsz/rtmonoaudio2midi>
    
