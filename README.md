@@ -1,11 +1,11 @@
 # Easy audio to midi transcription
 
-Small project for note recognition in mono audio-streams or in wave files and the subsequent transcription to a midi file.
-The note recognition still needs major improvements..
+Small project for note recognition in mono audio-streams or in wave files and the subsequent transcription of the detected notes to a midi file.
+The note recognition part still needs major improvements and is not really working yet :)
 
-- To transcribe monophonic audio streams, execute audiostream.py.
+- To transcribe monophonic audio streams execute audiostream.py.
 
-- To transcribe wave files, set the path to your wave file in app_setup.py and execute file_input.py
+- To transcribe wave files set the path to your wave file in app_setup.py and execute file_input.py
 
 
 
