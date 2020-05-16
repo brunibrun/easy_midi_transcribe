@@ -12,6 +12,7 @@ search_offset = False
 search_frequency = False
 
 
+
 class StreamProcessor(object):
 
     def __init__(self):
@@ -19,6 +20,7 @@ class StreamProcessor(object):
         self._spectral_analyzer = SpectralAnalyzer(
             window_size=WINDOW_SIZE,
             segments_buf=RING_BUFFER_SIZE)
+
 
     def run(self):
         """ Audio stream function using pyaudio """
@@ -44,17 +46,19 @@ class StreamProcessor(object):
         create_midi_file_with_notes("midi_output/new_file", np.array(notes), BPM)
         print(np.array(notes))
 
+
     def _process_frame(self, data, frame_count, time_info, status_flag):
         """ Recognize events from data windows """
         
         global search_offset, search_frequency, notes
 
-        # get data from current window
+        # get data from current window and process data
         data_array = np.frombuffer(data, dtype=np.int16)
+        self._spectral_analyzer.process_data(data_array)
 
         # look for events in current data window
-        onset = self._spectral_analyzer.process_data(data_array)
-        frequency = self._spectral_analyzer.find_fundamental_freq(search_frequency, data_array)
+        onset = self._spectral_analyzer.find_onset()
+        frequency = self._spectral_analyzer.find_fundamental_freq(search_frequency)
         offset = self._spectral_analyzer.find_offset(search_offset, onset)
 
         if offset:
@@ -76,8 +80,6 @@ class StreamProcessor(object):
             print("Note detected - Position:", position_in_sec)
 
         return (data, paContinue)
-
-
 
 
 

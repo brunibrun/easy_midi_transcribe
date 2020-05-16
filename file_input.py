@@ -34,12 +34,15 @@ def FileInput(file, output_name):
     for i in range(num_cycles): # iterate over windows in wave file
         time = i * sec_per_cycle # current time of wave window in sec
 
-        # get data from current wave window
-        data_array = np.frombuffer(wave_file.readframes(WINDOW_SIZE), np.int16, count = WINDOW_SIZE)
-        
+        # get data from current wave window and process it
+        data_array = np.frombuffer(wave_file.readframes(WINDOW_SIZE), 
+            np.int16, count = WINDOW_SIZE)
+        _spectral_analyzer.process_data(data_array)
+
+
         # look for events in current data window
-        onset = _spectral_analyzer.process_data(data_array)
-        frequency = _spectral_analyzer.find_fundamental_freq(search_frequency, data_array)
+        onset = _spectral_analyzer.find_onset()
+        frequency = _spectral_analyzer.find_fundamental_freq(search_frequency)
         offset = _spectral_analyzer.find_offset(search_offset, onset)
 
         if offset:

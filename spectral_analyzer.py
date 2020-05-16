@@ -16,7 +16,6 @@ class SpectralAnalyzer(object):
     # initialize frequency range
     FREQUENCY_RANGE = FREQUENCY_RANGE
 
-
     def __init__(self, window_size, segments_buf=None):
         """ initialize spectral analyzer """
 
@@ -30,9 +29,9 @@ class SpectralAnalyzer(object):
         assert self._thresholding_window_size <= segments_buf
 
         # initialize data windows with zeros
+        self._spectrum = np.zeros(window_size, dtype=np.int16)
         self._last_spectrum = np.zeros(window_size, dtype=np.int16)
-        self._second_last_spectrum = np.zeros(window_size, dtype=np.int16)
-        self._last_data = np.zeros(window_size, dtype=np.int16)
+        self._data = np.zeros(window_size, dtype=np.int16)
 
         self._last_flux = deque(
             np.zeros(segments_buf, dtype=np.int16), segments_buf)
@@ -56,13 +55,14 @@ class SpectralAnalyzer(object):
             self._segments_buf))
 
 
-    def find_onset(self, spectrum):
+    def find_onset(self):
         """ 
         calculate difference between current and last spectrum
         and apply thresholding function to check if peak occurred
         """
 
-        # get last spectrum and flux
+        # get last spectrums and flux
+        spectrum = self._spectrum
         last_spectrum = self._last_spectrum
         flux = sum([max(spectrum[n] - last_spectrum[n], 0)
             for n in range(self._window_size)])
@@ -76,13 +76,19 @@ class SpectralAnalyzer(object):
         # check if peak occured
         peak = prunned if prunned > self._last_prunned_flux else 0
         self._last_prunned_flux  = prunned
+
+        # ignore first peak
+        if self._first_peak:
+            self._first_peak = False
+            return
+
         return peak
 
 
     def find_offset(self, search_offset, onset):
         """ 
-        find if offset occured. returns offset if new onset is detected 
-        or if volume is sufficiently quiet
+        check if offset occured in audio. return offset if new onset 
+        is detected or if volume is sufficiently low
         """
 
         if search_offset: # only look for offset if note is active
@@ -92,8 +98,8 @@ class SpectralAnalyzer(object):
                 return True
             
             # compare loudness of last frames with current frame
-            spectrum = self._last_spectrum
-            last_spectrum = self._second_last_spectrum
+            spectrum = self._spectrum
+            last_spectrum = self._last_spectrum
             loud_tresh = AVERAGE_QUIET_NOISE * LOUDNESS_TRESHHOLD
 
             # if current window sufficiently quiet return offset
@@ -101,7 +107,7 @@ class SpectralAnalyzer(object):
                 return True
 
 
-    def find_fundamental_freq(self, search_frequency, samples):
+    def find_fundamental_freq(self, search_frequency):
         """ find fundamental frequency of window by analyzing cepstrum """
 
         if search_frequency: # only look for frequency if note is active
@@ -113,7 +119,7 @@ class SpectralAnalyzer(object):
             end = int(SAMPLE_RATE / min_freq)
 
             # get last sample
-            samples = self._last_data
+            samples = self._data
 
             # get cepstrum and cut off  unwanted frequencies 
             cepstrum = self.cepstrum(samples)
@@ -131,44 +137,36 @@ class SpectralAnalyzer(object):
 
 
     def process_data(self, data):
-        """ 
-        main method of spectral analyzer. save spectras from data. 
-        return data to find_onset function 
-        """
+        """ compute spectrum from data window and save it """
         
-        spectrum = self.autopower_spectrum(data)
-        onset = self.find_onset(spectrum)
+        self._last_spectrum = self._spectrum
+        self._spectrum = self.autopower_spectrum(data)
+        self._data = data
 
-        self._second_last_spectrum = self._last_spectrum
-        self._last_spectrum = spectrum
-        self._last_data = data
-
-        # ignore first peak
-        if self._first_peak:
-            self._first_peak = False
-            return
-
-        if onset:
-            return True
 
     def autopower_spectrum(self, samples):
-        """
-        Calculates a power spectrum of the given data using the Hamming window.
-        """
+        """ calculate power spectrum using hanning window """
+        
         # TODO: check the length of given samples; treat differently if not
         # equal to the window size
+        
+        # use hanning window to smooth sample ends
         windowed = samples * self._hanning_window
+
         # Add 0s to double the length of the data
         padded = np.append(windowed, self._inner_pad)
+
         # Take the Fourier Transform and scale by the number of samples
         spectrum = np.fft.fft(padded) / self._window_size
+
+        # compute and return power spectrum
         autopower = np.abs(spectrum * np.conj(spectrum))
         return autopower[:self._window_size]
 
+
     def cepstrum(self, samples):
-        """
-        Calculates the complex cepstrum of a real sequence.
-        """
+        """ calculate complex cepstrum of real sequence """
+
         spectrum = np.fft.fft(samples)
         log_spectrum = np.log(np.abs(spectrum))
         cepstrum = np.fft.ifft(log_spectrum).real
