@@ -2,9 +2,9 @@ import time
 import numpy as np
 from pyaudio import PyAudio, paContinue, paInt16
 
-from app_setup import (RING_BUFFER_SIZE, SAMPLE_RATE, WINDOW_SIZE, BPM)
+from app_setup import RING_BUFFER_SIZE, SAMPLE_RATE, WINDOW_SIZE, BPM
 from midi import hz_to_midi, create_midi_file_with_notes
-from spectral_analyzer import SpectralAnalyser
+from spectral_analyzer import SpectralAnalyzer
 
 # initialize global variables
 notes = [[0, 0, 0, 0]]
@@ -15,8 +15,8 @@ search_frequency = False
 class StreamProcessor(object):
 
     def __init__(self):
-        """ Initialize self """
-        self._spectral_analyser = SpectralAnalyser(
+        """ Initialize StreamProcessor """
+        self._spectral_analyzer = SpectralAnalyzer(
             window_size=WINDOW_SIZE,
             segments_buf=RING_BUFFER_SIZE)
 
@@ -53,9 +53,9 @@ class StreamProcessor(object):
         data_array = np.frombuffer(data, dtype=np.int16)
 
         # look for events in current data window
-        onset = self._spectral_analyser.process_data(data_array)
-        frequency = self._spectral_analyser.find_fundamental_freq(search_frequency, data_array)
-        offset = self._spectral_analyser.find_offset(search_offset, onset)
+        onset = self._spectral_analyzer.process_data(data_array)
+        frequency = self._spectral_analyzer.find_fundamental_freq(search_frequency, data_array)
+        offset = self._spectral_analyzer.find_offset(search_offset, onset)
 
         if offset:
             offset_time_in_sec = round(time.time() - start_time, 3) - 0.001 

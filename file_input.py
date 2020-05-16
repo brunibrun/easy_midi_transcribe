@@ -3,7 +3,7 @@ import numpy as np
 
 from app_setup import RING_BUFFER_SIZE, WINDOW_SIZE, BPM, PATH_TO_FILE
 from midi import hz_to_midi, create_midi_file_with_notes
-from spectral_analyzer import SpectralAnalyser
+from spectral_analyzer import SpectralAnalyzer
 
 
 
@@ -20,7 +20,7 @@ def FileInput(file, output_name):
     notes = [[0, 0, 0, 0]]
     search_offset = False
     search_frequency = False
-    _spectral_analyser = SpectralAnalyser(
+    _spectral_analyzer = SpectralAnalyzer(
         window_size=WINDOW_SIZE,
         segments_buf=RING_BUFFER_SIZE)
 
@@ -38,9 +38,9 @@ def FileInput(file, output_name):
         data_array = np.frombuffer(wave_file.readframes(WINDOW_SIZE), np.int16, count = WINDOW_SIZE)
         
         # look for events in current data window
-        onset = _spectral_analyser.process_data(data_array)
-        frequency = _spectral_analyser.find_fundamental_freq(search_frequency, data_array)
-        offset = _spectral_analyser.find_offset(search_offset, onset)
+        onset = _spectral_analyzer.process_data(data_array)
+        frequency = _spectral_analyzer.find_fundamental_freq(search_frequency, data_array)
+        offset = _spectral_analyzer.find_offset(search_offset, onset)
 
         if offset:
             offset_time_in_sec = round(time, 3) - 0.001

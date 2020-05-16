@@ -11,11 +11,16 @@ from app_setup import (
     LOUDNESS_TRESHHOLD)
 
 
-class SpectralAnalyser(object):
+class SpectralAnalyzer(object):
 
+    # initialize frequency range
     FREQUENCY_RANGE = FREQUENCY_RANGE
 
+
     def __init__(self, window_size, segments_buf=None):
+        """ initialize spectral analyzer """
+
+        # initialize window sizes
         self._window_size = window_size
         if segments_buf is None:
             segments_buf = int(SAMPLE_RATE / window_size)
@@ -24,6 +29,7 @@ class SpectralAnalyser(object):
         self._thresholding_window_size = THRESHOLD_WINDOW_SIZE
         assert self._thresholding_window_size <= segments_buf
 
+        # initialize data windows with zeros
         self._last_spectrum = np.zeros(window_size, dtype=np.int16)
         self._second_last_spectrum = np.zeros(window_size, dtype=np.int16)
         self._last_data = np.zeros(window_size, dtype=np.int16)
@@ -32,15 +38,17 @@ class SpectralAnalyser(object):
             np.zeros(segments_buf, dtype=np.int16), segments_buf)
         self._last_prunned_flux = 0
 
+        # initialize window smoothing function
         self._hanning_window = np.hanning(window_size)
-        # The zeros which will be used to double each segment size
-        self._inner_pad = np.zeros(window_size)
+        
+        self._inner_pad = np.zeros(window_size) # zeros to double each segment size
 
-        # ignore first peak after starting application
-        self._first_peak = True
+        self._first_peak = True # ignore first peak after starting application
+
 
 
     def _get_flux_for_thresholding(self):
+        """ return last fluxes from previous windows """
         return list(itertools.islice(
             self._last_flux,
             self._segments_buf - self._thresholding_window_size,
@@ -48,57 +56,76 @@ class SpectralAnalyser(object):
 
 
     def find_onset(self, spectrum):
+        """ 
+        calculate difference between current and last spectrum
+        and apply thresholding function to check if peak occurred
         """
-        Calculate difference between current and last spectrum
-        then apply thresholding function and check if peak occurred
-        """
+
+        # get last spectrum and flux
         last_spectrum = self._last_spectrum
         flux = sum([max(spectrum[n] - last_spectrum[n], 0)
             for n in range(self._window_size)])
         self._last_flux.append(flux)
 
+        # compute difference and threshold it
         thresholded = np.mean(
             self._get_flux_for_thresholding()) * THRESHOLD_MULTIPLIER
         prunned = flux - thresholded if thresholded <= flux else 0
+        
+        # check if peak occured
         peak = prunned if prunned > self._last_prunned_flux else 0
         self._last_prunned_flux  = prunned
         return peak
 
 
-    def find_offset(self, search_offset, freq0):
-        if search_offset:
+    def find_offset(self, search_offset, onset):
+        """ 
+        find if offset occured. returns offset if new onset is detected 
+        or if volume is sufficiently quiet
+        """
 
-            # if new onset return offset
-            if freq0:
+        if search_offset: # only look for offset if note is active
+
+            # if new onset is detected return offset for previous note
+            if onset: 
                 return True
             
+            # compare loudness of last frames with current frame
             spectrum = self._last_spectrum
             last_spectrum = self._second_last_spectrum
             loud_tresh = AVERAGE_QUIET_NOISE * LOUDNESS_TRESHHOLD
 
-            # if very quiet return offset
+            # if current window sufficiently quiet return offset
             if np.sum(spectrum)<loud_tresh and np.sum(last_spectrum)<loud_tresh:
                 return True
 
 
     def find_fundamental_freq(self, search_frequency, samples):
-        if search_frequency:
+        """ find fundamental frequency of window by analyzing cepstrum """
 
-            # search for maximum between 0.08ms (=1200Hz) and 2ms (=500Hz)
-            min_freq, max_freq = self.FREQUENCY_RANGE
+        if search_frequency: # only look for frequency if note is active
+
+            min_freq, max_freq = self.FREQUENCY_RANGE # get frequency range
+
+            # convert frequency range to 1/seconds (e.g 500Hz = 1/ 2ms)
             start = int(SAMPLE_RATE / max_freq)
             end = int(SAMPLE_RATE / min_freq)
 
+            # get last sample
             samples = self._last_data
 
+            # get cepstrum and cut off  unwanted frequencies 
             cepstrum = self.cepstrum(samples)
             narrowed_cepstrum = cepstrum[start:end]
 
+            # look for maximum frequency in cepstrum and return it
             peak_ix = narrowed_cepstrum.argmax()
             freq0 = SAMPLE_RATE / (start + peak_ix)
-            if freq0 < min_freq or freq0 > max_freq:
-                # Ignore the note out of the desired frequency range
+            
+            # ignore irrelevant frequencies
+            if freq0 < min_freq or freq0 > max_freq: 
                 return
+
             return freq0
 
 
