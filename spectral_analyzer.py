@@ -41,7 +41,8 @@ class SpectralAnalyzer(object):
         # initialize window smoothing function
         self._hanning_window = np.hanning(window_size)
         
-        self._inner_pad = np.zeros(window_size) # zeros to double each segment size
+        # zeros to double each segment size
+        self._inner_pad = np.zeros(window_size) 
 
         self._first_peak = True # ignore first peak after starting application
 
@@ -130,6 +131,10 @@ class SpectralAnalyzer(object):
 
 
     def process_data(self, data):
+        """ 
+        main method of spectral analyzer. save spectras from data. 
+        return data to find_onset function 
+        """
         
         spectrum = self.autopower_spectrum(data)
         onset = self.find_onset(spectrum)
