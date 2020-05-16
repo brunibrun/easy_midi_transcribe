@@ -1,4 +1,4 @@
-# Easy audio to midi transcription
+# simple audio to midi note-transcription
 
 a small project to detect notes in mono audio-streams or in wave files and the subsequent transcription of the notes to a midi file. the note recognition part still needs major improvements and is not really functional yet :)
 
