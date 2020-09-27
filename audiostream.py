@@ -6,12 +6,6 @@ from app_setup import RING_BUFFER_SIZE, SAMPLE_RATE, WINDOW_SIZE, BPM
 from midi import hz_to_midi, create_midi_file_with_notes
 from spectral_analyzer import SpectralAnalyzer
 
-# initialize global variables
-notes = [[0, 0, 0, 0]]
-search_offset = False
-search_frequency = False
-
-
 
 class StreamProcessor(object):
 
@@ -20,6 +14,12 @@ class StreamProcessor(object):
         self._spectral_analyzer = SpectralAnalyzer(
             window_size=WINDOW_SIZE,
             segments_buf=RING_BUFFER_SIZE)
+
+        self.notes = [[0, 0, 0, 0]]
+
+        self.search_offset = False
+        
+        self.search_frequency = False
 
 
     def run(self):
@@ -43,14 +43,12 @@ class StreamProcessor(object):
         pya.terminate()
         
         # save notes as midi after stream ended and print out notes
-        create_midi_file_with_notes("midi_output/new_file", np.array(notes), BPM)
-        print(np.array(notes))
+        create_midi_file_with_notes("midi_output/new_file", np.array(self.notes), BPM)
+        print(np.array(self.notes))
 
 
     def _process_frame(self, data, frame_count, time_info, status_flag):
         """ Recognize events from data windows """
-        
-        global search_offset, search_frequency, notes
 
         # get data from current window and process data
         data_array = np.frombuffer(data, dtype=np.int16)
@@ -58,24 +56,24 @@ class StreamProcessor(object):
 
         # look for events in current data window
         onset = self._spectral_analyzer.find_onset()
-        frequency = self._spectral_analyzer.find_fundamental_freq(search_frequency)
-        offset = self._spectral_analyzer.find_offset(search_offset, onset)
+        frequency = self._spectral_analyzer.find_fundamental_freq(self.search_frequency)
+        offset = self._spectral_analyzer.find_offset(self.search_offset, onset)
 
         if offset:
             offset_time_in_sec = round(time.time() - start_time, 3) - 0.001 
-            notes[-1][3] = offset_time_in_sec # add offset time to recognized note
-            search_offset = False # stop looking for offset
+            self.notes[-1][3] = offset_time_in_sec # add offset time to recognized note
+            self.search_offset = False # stop looking for offset
 
         if frequency:
             midi_note_value = int(hz_to_midi(frequency)[0])
-            notes[-1][0] = midi_note_value # add frequency to recognized note
-            search_frequency = False # stop looking for frequency
+            self.notes[-1][0] = midi_note_value # add frequency to recognized note
+            self.search_frequency = False # stop looking for frequency
 
         if onset:
             position_in_sec = round(time.time() - start_time, 3)
-            notes.append([0, 100, position_in_sec, (position_in_sec+0.002) ]) # add note
-            search_offset = True # start looking for offset and frequency
-            search_frequency = True
+            self.notes.append([0, 100, position_in_sec, (position_in_sec+0.002) ]) # add note
+            self.search_offset = True # start looking for offset and frequency
+            self.search_frequency = True
 
             print("Note detected - Position:", position_in_sec)
 
