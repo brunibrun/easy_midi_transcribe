@@ -80,6 +80,13 @@ class StreamProcessor(object):
         return (data, paContinue)
 
 
+def remote_start():
+    """ Start Audio-Detection from other script """
+    stream_proc = StreamProcessor()
+    global start_time
+    start_time = time.time()
+    stream_proc.run()
+
 
 if __name__ == '__main__':
     stream_proc = StreamProcessor()
